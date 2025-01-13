@@ -1,0 +1,92 @@
+# Ignore build outputs
+bin/
+obj/
+
+./Program.cs
+config.json
+logs.txt
+error.txt
+Tests/
+
+# Ignore user-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vs/
+
+# Ignore Rider and VS Code settings
+.idea/
+.vscode/
+
+# Ignore NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Ignore compiled files
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.log
+*.cache
+*.config
+*.pri
+*.aps
+*.ilk
+*.idb
+*.ipdb
+*.ipch
+*.tlog
+*.log
+*.obj
+*.gen
+*.tlog
+*.lastbuildstate
+
+# Ignore generated files
+Generated\
+
+# Ignore coverage and test results
+TestResults/
+*.trx
+*.coverage
+*.codecoverage
+
+# Ignore temporary files
+*_ReSharper.Caches
+_ReSharper.Caches
+*.tmd
+
+# Ignore xUnit output
+*.xml
+coverage.opencover.xml
+TestResult.xml
+test_results/
+logs/
+
+# Ignore secrets
+secrets.json
+*.db
+
+# Ignore dependency files (if using local dependency cache)
+project.lock.json
+project.fragment.lock.json
+
+# Ignore Rider and ReSharper settings
+.idea/
+_ReSharper*/
+
+# Ignore Visual Studio Code settings
+.vscode/
+.vscode/*
+
+# Ignore dotnet tools
+.dotnet/tools/
+
+# Ignore global .NET files
+.vs/
+
+# Ignore MSBuild auto-generated files
+*.sln.ide
