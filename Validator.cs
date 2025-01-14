@@ -1,8 +1,22 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Net.Mail;
+using System.Runtime.InteropServices;
 
 public class Validator
 {
-    private static Dictionary<string, string> reserveData = [];
+    private Dictionary<string, string> reserveData;
+    private delegate bool BaseValidator(string value);
+    private Dictionary<string, BaseValidator> validators;
+
+    public Validator()
+    {
+        reserveData = new Dictionary<string, string>(); 
+        validators = new Dictionary<string, BaseValidator>();
+        validators.Add("uuid", ValidateUUID);
+        validators.Add("int", ValidateInt);
+        validators.Add("email", ValidateEmail);
+        validators.Add("date", ValidateDateTime);
+    }
     public string FieldValidator(string fieldKey, string fieldValue, ref JToken token)
     {
         try
@@ -14,18 +28,8 @@ public class Validator
                 fieldValue = temp[0];
                 reserve = temp[1];
             }
-
-            switch (fieldValue)
-            {
-                // id -> uuid
-                case "int": Console.WriteLine("intintint");return "" ;break;
-                case "uuid": return ValidateUUID(ref token, reserve, fieldKey, fieldValue);
-                case "created_at": return ValidateDate(ref token, reserve, fieldKey, fieldValue);
-                case "updated_at": return ValidateDate(ref token, reserve, fieldKey, fieldValue);
-                case "refresh_token": return ValidateRefreshToken(ref token);
-                case "access_token": return ValidateAccessToken(ref token);
-                default: return null;
-            }
+            
+            return Validate(ref token, reserve, fieldKey, fieldValue);
         }
         catch (Exception ex)
         {
@@ -38,80 +42,31 @@ public class Validator
             return null;
         }
     }
-    private string ValidateDate(ref JToken token, string reserve, string fieldKey, string fieldValue)
+    private string Validate(ref JToken token, string reserve, string fieldKey, string fieldValue)
     {
         if (token is JObject obj)
         {
-            string key = reserve != String.Empty && reserveData.ContainsKey(reserve[2..]) ? reserve[2..] : fieldValue;
-            string date = obj[key].ToString();
-            // check
-            obj.Remove(key);
-            obj[$"*{key}"] = fieldValue;
-
-            if (reserve != String.Empty)
+            string value = obj[fieldKey[1..]].ToString();
+            if (validators.ContainsKey(fieldValue) && !validators[fieldValue](value))
             {
-                obj[$"*{key}"] += $"-{ManageData(ref obj, reserve, date)}";
+                throw new Exception($"Error: {value} is incorrect!");
             }
-
-            return date;
-        }
-        else if (token is JArray array)
-        {
-            foreach (var item in array)
-            {
-                ValidateUUID(ref token, reserve, fieldKey, fieldValue);
-            }
-        }
-        return null;
-    }
-    private string ValidateUUID(ref JToken token, string reserve, string fieldKey, string fieldValue)
-    {
-        if (token is JObject obj)
-        {
-            string date = obj[fieldKey[1..]].ToString();
-            // check
             obj.Remove(fieldKey[1..]);
             obj[$"{fieldKey}"] = fieldValue;
 
             if (reserve != String.Empty)
             {
-                obj[$"{fieldKey}"] += $"-{ManageData(ref obj, reserve, date)}";
+                obj[$"{fieldKey}"] += $"-{ManageData(ref obj, reserve, value)}";
             }
 
-            return date;
+            return value;
         }
         else if (token is JArray array)
         {
             foreach (var item in array)
             {
-                ValidateUUID(ref token, reserve, fieldKey, fieldValue);
+                Validate(ref token, reserve, fieldKey, fieldValue);
             }
-        }
-        return null;
-    }
-    private string ValidateRefreshToken(ref JToken token)
-    {
-        if (token is JObject obj)
-        {
-            string refreshToken = (string)obj["refresh_token"];
-            // check
-            obj.Remove("refresh_token");
-            obj["*refresh_token"] = "refresh_token";
-            if (refreshToken != null)
-                return $"Bearer {refreshToken}";
-        }
-        return null;
-    }
-    private string ValidateAccessToken(ref JToken token)
-    {
-        if (token is JObject obj)
-        {
-            string accessToken = (string)obj["access_token"];
-            // check
-            obj.Remove("access_token");
-            obj["*access_token"] = "access_token";
-            if (accessToken != null)
-                return $"Bearer {accessToken}";
         }
         return null;
     }
@@ -127,6 +82,30 @@ public class Validator
             return key;
         }
         return String.Empty;
+    }
+    private bool ValidateUUID(string uuid)
+    {
+        return Guid.TryParse(uuid, out _);
+    }
+    private bool ValidateInt(string intgr)
+    {
+        return int.TryParse(intgr, out _);
+    }
+    private bool ValidateDateTime(string date)
+    {
+        return DateTime.TryParse(date, out _);
+    }
+    private bool ValidateEmail(string email)
+    {
+        try
+        {
+            var email_ = new MailAddress(email);
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 }
 

@@ -102,7 +102,7 @@ HttpRequestMessage GetRequest(HttpRequestBuilder request)
             headers.Remove($"*{pair.Key}");
             if (pair.Key == "access_token" || pair.Key == "refresh_token")
             {
-                headers["Authorization"] = pair.Value;
+                headers["Authorization"] = $"Bearer {pair.Value}";
             }
             else
             {
