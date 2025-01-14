@@ -3,24 +3,25 @@
 public class Validator
 {
     private static Dictionary<string, string> reserveData = [];
-    public string FieldValidator(string fieldData, ref JToken token)
+    public string FieldValidator(string fieldKey, string fieldValue, ref JToken token)
     {
         try
         {
             string reserve = string.Empty;
-            if (fieldData.Contains('-'))
+            if (fieldValue.Contains('-'))
             {
-                string[] temp = fieldData.Split('-');
-                fieldData = temp[0];
+                string[] temp = fieldValue.Split('-');
+                fieldValue = temp[0];
                 reserve = temp[1];
             }
 
-            switch (fieldData)
+            switch (fieldValue)
             {
                 // id -> uuid
-                case "id": return ValidateUUID(ref token, reserve, fieldData);
-                case "created_at": return ValidateDate(ref token, reserve, fieldData);
-                case "updated_at": return ValidateDate(ref token, reserve, fieldData);
+                case "int": Console.WriteLine("intintint");return "" ;break;
+                case "uuid": return ValidateUUID(ref token, reserve, fieldKey, fieldValue);
+                case "created_at": return ValidateDate(ref token, reserve, fieldKey, fieldValue);
+                case "updated_at": return ValidateDate(ref token, reserve, fieldKey, fieldValue);
                 case "refresh_token": return ValidateRefreshToken(ref token);
                 case "access_token": return ValidateAccessToken(ref token);
                 default: return null;
@@ -37,15 +38,15 @@ public class Validator
             return null;
         }
     }
-    private string ValidateDate(ref JToken token, string reserve, string fieldName)
+    private string ValidateDate(ref JToken token, string reserve, string fieldKey, string fieldValue)
     {
         if (token is JObject obj)
         {
-            string key = reserve != String.Empty && reserveData.ContainsKey(reserve[2..]) ? reserve[2..] : fieldName;
+            string key = reserve != String.Empty && reserveData.ContainsKey(reserve[2..]) ? reserve[2..] : fieldValue;
             string date = obj[key].ToString();
             // check
             obj.Remove(key);
-            obj[$"*{key}"] = fieldName;
+            obj[$"*{key}"] = fieldValue;
 
             if (reserve != String.Empty)
             {
@@ -58,24 +59,23 @@ public class Validator
         {
             foreach (var item in array)
             {
-                ValidateUUID(ref token, reserve, fieldName);
+                ValidateUUID(ref token, reserve, fieldKey, fieldValue);
             }
         }
         return null;
     }
-    private string ValidateUUID(ref JToken token, string reserve, string fieldName)
+    private string ValidateUUID(ref JToken token, string reserve, string fieldKey, string fieldValue)
     {
         if (token is JObject obj)
         {
-            string key = reserve != String.Empty && reserveData.ContainsKey(reserve[2..]) ? reserve[2..] : fieldName;
-            string date = obj[key].ToString();
+            string date = obj[fieldKey[1..]].ToString();
             // check
-            obj.Remove(key);
-            obj[$"*{key}"] = fieldName;
+            obj.Remove(fieldKey[1..]);
+            obj[$"{fieldKey}"] = fieldValue;
 
             if (reserve != String.Empty)
             {
-                obj[$"*{key}"] += $"-{ManageData(ref obj, reserve, date)}";
+                obj[$"{fieldKey}"] += $"-{ManageData(ref obj, reserve, date)}";
             }
 
             return date;
@@ -84,7 +84,7 @@ public class Validator
         {
             foreach (var item in array)
             {
-                ValidateUUID(ref token, reserve, fieldName);
+                ValidateUUID(ref token, reserve, fieldKey, fieldValue);
             }
         }
         return null;

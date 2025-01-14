@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
 
 
-LogLevel level = LogLevel.Debug;
+LogLevel level = LogLevel.Information;
+int success = 0, fatal = 0;
 
 if (args.Length > 0)
 {
@@ -34,7 +35,7 @@ foreach (var item in Tester.GetTestData())
 
     try
     {
-        List<string> dynamicFields = GetDynamicFields(expected);
+        List<string[]> dynamicFields = GetDynamicFields(expected);
         using (HttpClient client = new HttpClient())
         {
             response = await client.SendAsync(GetRequest(request));
@@ -44,10 +45,10 @@ foreach (var item in Tester.GetTestData())
         logger._logger.LogDebug($"Response received: {actualToken.ToString()}");
         for (int i = 0; i < dynamicFields.Count; i++)
         {
-            string temp = validator.FieldValidator(dynamicFields[i], ref actualToken);
-            if (temp != null && !dynamicFields[i].Contains('-'))
+            string temp = validator.FieldValidator(dynamicFields[i][0], dynamicFields[i][1], ref actualToken);
+            if (temp != null && !dynamicFields[i][1].Contains('-'))
             {
-                data[dynamicFields[i]] = temp;
+                data[dynamicFields[i][0][1..]] = temp;
             }
         }
         bool result = JToken.DeepEquals(actualToken, expected);
@@ -63,10 +64,12 @@ foreach (var item in Tester.GetTestData())
         if (result)
         {
             logger._logger.LogInformation($"Passed: {request._method} -> {request._url}");
+            success++;
         }
         else
         {
             logger._logger.LogWarning($"Fatal: {request._method} -> {request._url}");
+            fatal++;
         }
     }
     catch (Exception ex)
@@ -80,6 +83,8 @@ foreach (var item in Tester.GetTestData())
         }
     }
 }
+
+logger._logger.LogInformation($"Success: {success}. Fatal: {fatal}. Total: {success + fatal}");
 HttpRequestMessage GetRequest(HttpRequestBuilder request)
 {
     string url = request._url;
@@ -123,16 +128,16 @@ HttpRequestMessage GetRequest(HttpRequestBuilder request)
             SetQuery(query).
             Build();
 }
-List<string> GetDynamicFields(JToken token)
+List<string[]> GetDynamicFields(JToken token)
 {
-    List<string> dynamicFields = new List<string>();
+    List<string[]> dynamicFields = new List<string[]>();
     if (token is JObject obj)
     {
         foreach (var item in obj)
         {
             if (item.Key.StartsWith('*'))
             {
-                dynamicFields.Add(item.Value.ToString());
+                dynamicFields.Add(new string[] { item.Key.ToString(), item.Value.ToString() });
             }
         }
     }
