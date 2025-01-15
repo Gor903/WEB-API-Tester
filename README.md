@@ -150,12 +150,7 @@ If you want to validate certain fields in the response (e.g., uuid, email, int, 
 
 ## Retrieving Reserved Data
 ```
-"id": "uuid-<$owner_id"
+"*id": "uuid-<$owner_id"
 ```
   - **uuid**: This specifies the field type for validation..
   - **owner_id**: The key in the reserve dictionary that holds the reserved value.
-
-
-# Build files
-
-The project includes pre-built files located in the Build folder. You can use these files directly without needing to build the project from source.
