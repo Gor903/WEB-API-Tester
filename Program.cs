@@ -2,10 +2,12 @@
 using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
+using System.Security.Cryptography;
+using System.Text.Json;
 
 
 LogLevel level = LogLevel.Information;
-int success = 0, fatal = 0;
+int success = 0, fail = 0;
 
 if (args.Length > 0)
 {
@@ -41,7 +43,10 @@ foreach (var item in Tester.GetTestData())
             response = await client.SendAsync(GetRequest(request));
         }
         string actual = await response.Content.ReadAsStringAsync();
-        JToken actualToken = JToken.Parse(actual);
+        if (!JtokenTryParse(actual, out JToken actualToken))
+        {
+            throw new Exception(actualToken.ToString());
+        }
         logger._logger.LogDebug($"Response received: {actualToken.ToString()}");
         for (int i = 0; i < dynamicFields.Count; i++)
         {
@@ -52,15 +57,6 @@ foreach (var item in Tester.GetTestData())
             }
         }
         bool result = JToken.DeepEquals(actualToken, expected);
-        using (StreamWriter sw = new StreamWriter(Path.Combine(logDirectory, "logs.txt"), true))
-        {
-            sw.WriteLine(result == true ? "Passed" : "Failed");
-            sw.WriteLine($"Request: {request}");
-            sw.WriteLine($"Expected: {expected}");
-            sw.WriteLine($"Actual: {actualToken}");
-            sw.WriteLine($"Data: {{\n\t{string.Join("\n\t", data.Select(pair => $"{pair.Key}: {pair.Value}"))}\n}}");
-            sw.WriteLine(new string('=', 100));
-        }
         if (result)
         {
             logger._logger.LogInformation($"Passed: {request._method} -> {request._url}");
@@ -69,7 +65,15 @@ foreach (var item in Tester.GetTestData())
         else
         {
             logger._logger.LogWarning($"Fatal: {request._method} -> {request._url}");
-            fatal++;
+            using (StreamWriter sw = new StreamWriter(Path.Combine(logDirectory, "logs.txt"), true))
+            {
+                sw.WriteLine($"Request: {request}");
+                sw.WriteLine($"Expected: {expected}");
+                sw.WriteLine($"Actual: {JToken.Parse(actual)}");
+                sw.WriteLine($"Data: {{\n\t{string.Join("\n\t", data.Select(pair => $"{pair.Key}: {pair.Value}"))}\n}}");
+                sw.WriteLine(new string('=', 100));
+            }
+            fail++;
         }
     }
     catch (Exception ex)
@@ -84,7 +88,7 @@ foreach (var item in Tester.GetTestData())
     }
 }
 
-logger._logger.LogInformation($"Success: {success}. Fatal: {fatal}. Total: {success + fatal}");
+logger._logger.LogInformation($"Success: {success}. Fail: {fail}. Total: {success + fail}");
 HttpRequestMessage GetRequest(HttpRequestBuilder request)
 {
     string url = request._url;
@@ -145,8 +149,22 @@ List<string[]> GetDynamicFields(JToken token)
     {
         foreach (var item in array)
         {
-            GetDynamicFields(token);
+            return GetDynamicFields(item);
         }
     }
     return dynamicFields;
+}
+bool JtokenTryParse(string value, out JToken token)
+{
+    try
+    {
+        token = JToken.Parse(value);
+        return true;
+    }
+    catch (JsonException jex)
+    {
+        string message = $"{{\"Error message\": {jex}}}";
+        token = JToken.Parse(message);
+        return false;
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Net.Mail;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 public class Validator
@@ -63,12 +64,33 @@ public class Validator
         }
         else if (token is JArray array)
         {
-            foreach (var item in array)
-            {
-                Validate(ref token, reserve, fieldKey, fieldValue);
-            }
+            ValidateJArray(ref array, reserve, fieldKey, fieldValue);            
         }
         return null;
+    }
+
+    private void ValidateJArray(ref JArray array, string reserve, string fieldKey, string fieldValue)
+    {
+        for (int i = 0; i < array.Count; i++)
+        {
+            {
+                if (array[i] is JObject arrObj)
+                {
+                    string value = arrObj[fieldKey[1..]].ToString();
+                    if (validators.ContainsKey(fieldValue) && !validators[fieldValue](value))
+                    {
+                        throw new Exception($"Error: {value} is incorrect!");
+                    }
+                    arrObj.Remove(fieldKey[1..]);
+                    arrObj[$"{fieldKey}"] = fieldValue;
+
+                    if (reserve != String.Empty)
+                    {
+                        arrObj[$"{fieldKey}"] += $"-{ManageData(ref arrObj, reserve, value)}";
+                    }
+                }
+            }
+        }
     }
     private string ManageData(ref JObject token, string key, string value)
     {
