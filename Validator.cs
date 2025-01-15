@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Net.Mail;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 public class Validator
 {
@@ -11,37 +9,26 @@ public class Validator
 
     public Validator()
     {
-        reserveData = new Dictionary<string, string>(); 
-        validators = new Dictionary<string, BaseValidator>();
-        validators.Add("uuid", ValidateUUID);
-        validators.Add("int", ValidateInt);
-        validators.Add("email", ValidateEmail);
-        validators.Add("date", ValidateDateTime);
+        reserveData = new Dictionary<string, string>();
+        validators = new Dictionary<string, BaseValidator>()
+        {
+            {"uuid", ValidateUUID },
+            {"int", ValidateInt },
+            {"email", ValidateEmail },
+            {"date", ValidateDateTime },
+        };
     }
     public string FieldValidator(string fieldKey, string fieldValue, ref JToken token)
     {
-        try
+        string reserve = string.Empty;
+        if (fieldValue.Contains('-'))
         {
-            string reserve = string.Empty;
-            if (fieldValue.Contains('-'))
-            {
-                string[] temp = fieldValue.Split('-');
-                fieldValue = temp[0];
-                reserve = temp[1];
-            }
-            
-            return Validate(ref token, reserve, fieldKey, fieldValue);
+            string[] temp = fieldValue.Split('-');
+            fieldValue = temp[0];
+            reserve = temp[1];
         }
-        catch (Exception ex)
-        {
-            using (StreamWriter sw = new StreamWriter(@"C:\Users\gbegl\source\repos\cs\TestProject1\TestProject1\errrror.txt", true))
-            {
-                sw.WriteLine(ex.Message);
-                sw.WriteLine($"Data {token}");
-                sw.WriteLine("--------------------------");
-            }
-            return null;
-        }
+
+        return Validate(ref token, reserve, fieldKey, fieldValue);
     }
     private string Validate(ref JToken token, string reserve, string fieldKey, string fieldValue)
     {
@@ -64,7 +51,7 @@ public class Validator
         }
         else if (token is JArray array)
         {
-            ValidateJArray(ref array, reserve, fieldKey, fieldValue);            
+            ValidateJArray(ref array, reserve, fieldKey, fieldValue);
         }
         return null;
     }

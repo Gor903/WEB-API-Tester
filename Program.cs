@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.Metrics;
-using System.Security.Cryptography;
 using System.Text.Json;
 
 
@@ -20,7 +17,7 @@ if (args.Length > 0)
         case "warn": level = LogLevel.Warning; break;
         case "fail": level = LogLevel.Error; break;
         case "crit": level = LogLevel.Critical; break;
-        default: level = LogLevel.Debug; break;
+        default: level = LogLevel.Information; break;
     }
 }
 
