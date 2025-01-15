@@ -120,3 +120,42 @@ Create a `<filename>.json` file in the Tests directory of the project with the f
   }
 }
 ```
+
+# Important
+
+### Validating response data
+If you want to validate certain fields in the response (e.g., uuid, email, int, datetime), prefix the field name with an asterisk (*) and specify the validation type.
+
+```json
+{
+  "*id": "uuid",
+  "*email": "email",
+  "*age": "int",
+  "*created_at": "datetime"
+}
+```
+  - ***id**: Validates that the id field is a **UUID**.
+  - ***email**: Validates that the **email** field is a valid email address.
+  - ***age**: Validates that the **age** field is an integer.
+  - ***created_at**: Validates that the **created_at** field is a valid datetime format.
+
+  ## Reserve data
+
+  To reserve a value, format the field as follows:
+  ```
+  "*id": "uuid->$owner_id"
+  ```
+  - **uuid**: This specifies the field type for validation..
+  - **owner_id**: The key used to store the reserved value in the reserve dictionary.
+
+## Retrieving Reserved Data
+```
+"id": "uuid-<$owner_id"
+```
+  - **uuid**: This specifies the field type for validation..
+  - **owner_id**: The key in the reserve dictionary that holds the reserved value.
+
+
+# Build files
+
+The project includes pre-built files located in the Build folder. You can use these files directly without needing to build the project from source.
