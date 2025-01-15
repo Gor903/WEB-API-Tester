@@ -38,7 +38,7 @@ public class Tester
     {
         instance = new Tester();
         string content = String.Empty;
-        using (StreamReader sr = new StreamReader("C:\\Users\\gbegl\\source\\repos\\WEB-API-Tester\\WEB-API-Tester\\config.json"))
+        using (StreamReader sr = new StreamReader("config.json"))
         {
             content = sr.ReadToEnd();
         }
