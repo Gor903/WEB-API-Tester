@@ -131,9 +131,9 @@ HttpRequestMessage GetRequest(HttpRequestBuilder request)
 }
 List<string[]> GetDynamicFields(JToken token)
 {
-    List<string[]> dynamicFields = new List<string[]>();
     if (token is JObject obj)
     {
+        List<string[]> dynamicFields = new List<string[]>();
         foreach (var item in obj)
         {
             if (item.Key.StartsWith('*'))
@@ -141,6 +141,7 @@ List<string[]> GetDynamicFields(JToken token)
                 dynamicFields.Add(new string[] { item.Key.ToString(), item.Value.ToString() });
             }
         }
+        return dynamicFields;
     }
     else if (token is JArray array)
     {
@@ -149,7 +150,7 @@ List<string[]> GetDynamicFields(JToken token)
             return GetDynamicFields(item);
         }
     }
-    return dynamicFields;
+    return null;
 }
 bool JtokenTryParse(string value, out JToken token)
 {
