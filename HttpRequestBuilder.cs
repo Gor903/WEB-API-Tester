@@ -50,7 +50,7 @@ public class HttpRequestBuilder
         if (query == null) return this;
         _query = _query.Concat(query)
                        .GroupBy(pair => pair.Key)
-                       .ToDictionary(group => Uri.EscapeDataString(group.Key), group => Uri.EscapeDataString(group.Last().Value));
+                       .ToDictionary(group => group.Key, group => group.Last().Value);
         return this;
     }
 
@@ -78,7 +78,11 @@ public class HttpRequestBuilder
         HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
         if (_query.Keys.Count > 0)
         {
-            _url += $"?{string.Join("&", _query.Select(pair => $"{pair.Key}={pair.Value}"))}";
+            _url += $"?{string.Join("&", _query.Select(
+                pair => $"" +
+                $"{Uri.EscapeDataString(pair.Key)}=" +
+                $"{Uri.EscapeDataString(pair.Value)}"
+            ))}";
         }
         var request = new HttpRequestMessage(_method, _url)
         {
