@@ -10,7 +10,11 @@ class ConfigReader
             logger._logger.LogTrace($"Start: {item.Group}");
             foreach (string file in item.Files)
             {
-                TestConfigData temp =  ProcessFile(Path.Combine(path, item.Group, file + ".json"));
+                TestConfigData temp = ProcessFile(Path.Combine(path, item.Group, file + ".json"));
+                if (temp == null)
+                {
+                    continue;
+                }
                 temp.Url = item.Url;
                 temp.LogDirectory = item.LogDirectory;
                 yield return temp;
@@ -21,12 +25,20 @@ class ConfigReader
     {
         logger._logger.LogTrace($"Read: {path}");
         string content = String.Empty;
-        using (StreamReader sr = new StreamReader(path))
+        try
         {
-            content = sr.ReadToEnd();
+            using (StreamReader sr = new StreamReader(path))
+            {
+                content = sr.ReadToEnd();
+            }
+            return JsonConvert.DeserializeObject<TestConfigData>(content);
+        }
+        catch (Exception ex)
+        {
+            logger._logger.LogError($"Error while reading: {ex.Message}");
+            return null;
         }
 
-        return JsonConvert.DeserializeObject<TestConfigData>(content);
     }
 }
 

@@ -34,17 +34,22 @@ public class Validator
     {
         if (token is JObject obj)
         {
-            string value = obj[fieldKey[1..]].ToString();
+            string cleanFieldKey = fieldKey[1..];
+            if (!obj.ContainsKey(cleanFieldKey))
+            {
+                return null;
+            }
+            string value = obj[cleanFieldKey].ToString();
             if (validators.ContainsKey(fieldValue) && !validators[fieldValue](value))
             {
                 throw new Exception($"Error: {value} is incorrect!");
             }
-            obj.Remove(fieldKey[1..]);
+            obj.Remove(cleanFieldKey);
             obj[$"{fieldKey}"] = fieldValue;
 
             if (reserve != String.Empty)
             {
-                obj[$"{fieldKey}"] += $"-{ManageData(ref obj, reserve, value)}";
+                obj[fieldKey] += $"-{ManageData(ref obj, reserve, value)}";
             }
 
             return value;
@@ -60,19 +65,24 @@ public class Validator
     {
         for (int i = 0; i < array.Count; i++)
         {
-            if (array[i] is JObject arrObj)
+            if (array[i] is JObject obj)
             {
-                string value = arrObj[fieldKey[1..]].ToString();
+                string cleanFieldKey = fieldKey[1..];
+                if (!obj.ContainsKey(cleanFieldKey))
+                {
+                    return;
+                }
+                string value = obj[cleanFieldKey].ToString();
                 if (validators.ContainsKey(fieldValue) && !validators[fieldValue](value))
                 {
                     throw new Exception($"Error: {value} is incorrect!");
                 }
-                arrObj.Remove(fieldKey[1..]);
-                arrObj[$"{fieldKey}"] = fieldValue;
+                obj.Remove(cleanFieldKey);
+                obj[$"{fieldKey}"] = fieldValue;
 
                 if (reserve != String.Empty)
                 {
-                    arrObj[$"{fieldKey}"] += $"-{ManageData(ref arrObj, reserve, value)}";
+                    obj[fieldKey] += $"-{ManageData(ref obj, reserve, value)}";
                 }
             }
         }

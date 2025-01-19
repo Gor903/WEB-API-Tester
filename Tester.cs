@@ -1,50 +1,53 @@
 ﻿using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.IO;
 public class Tester
 {
     private APITesterLogs logger = APITesterLogs.GetInstance();
-    private static Tester instance = new();
     private ConfigReader configReader = new();
     private ConfigData? configData;
     private object[] testData = new object[3];
-    HttpRequestBuilder? request = null;
-    public static IEnumerable<Object[]> GetTestData()
+    private HttpRequestBuilder? request = null;
+    public IEnumerable<Object[]> GetTestData()
     {
-        Tester tester = GetInstance();
-        string testConfigPath = tester.configData.TestConfigsPath;
+        string testConfigPath = configData.TestConfigsPath;
 
-        foreach (TestConfigData data in tester.configReader.ProcessDirectory(testConfigPath, tester.configData.TestGroups))
+        foreach (TestConfigData data in configReader.ProcessDirectory(testConfigPath, configData.TestGroups))
         {
-            tester.request = new();
+            request = new();
 
-            tester.request.SetMethod(data.Method).
+            request.SetMethod(data.Method).
                     SetUrl($"{data.Url}/{data.Endpoint}").
                     SetHeaders(data.Headers).
                     SetContent(data.Content).
                     SetQuery(data.Query);
 
-            tester.testData[0] = tester.request;
-            tester.testData[1] = data.Expected;
+            testData[0] = request;
+            testData[1] = data.Expected;
 
-            tester.testData[2] =
-                data.LogDirectory == null ? tester.configData.LogDirectory : data.LogDirectory;
-            tester.logger._logger.LogTrace($"Tester data is ready!");
+            testData[2] =
+            data.LogDirectory == null ? configData.LogDirectory : data.LogDirectory;
+            logger._logger.LogTrace($"Tester data is ready!");
 
-            yield return tester.testData;
+            yield return testData;
         }
     }
-    private static Tester GetInstance()
+    public Tester()
     {
-        instance = new Tester();
         string content = String.Empty;
-        using (StreamReader sr = new StreamReader("config.json"))
+        try
         {
-            content = sr.ReadToEnd();
+            using (StreamReader sr = new StreamReader("config.json"))
+            {
+                content = sr.ReadToEnd();
+            }
+            configData = JsonConvert.DeserializeObject<ConfigData>(content);
+            configData.TestGroups = configData.TestGroups.Where(x => x.Ignore.Equals("False")).ToArray();
         }
-        instance.configData = JsonConvert.DeserializeObject<ConfigData>(content);
-        instance.configData.TestGroups = instance.configData.TestGroups.Where(x => x.Ignore.Equals("False")).ToArray();
-        instance.logger._logger.LogTrace($"Tester is ready!");
-        return instance;
+        catch (Exception ex)
+        {
+            logger._logger.LogError($"Error: {ex.Message}");
+            Environment.Exit(1);
+        }
+        logger._logger.LogTrace($"Tester is ready!");
     }
 }

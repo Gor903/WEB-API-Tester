@@ -78,7 +78,8 @@ public class HttpRequestBuilder
         HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
         if (_query.Keys.Count > 0)
         {
-            _url += $"?{string.Join("&", _query.Select(pair => $"{pair.Key}={pair.Value}"))}";
+            string queryString = string.Join("&", _query.Select(pair => $"{pair.Key}={pair.Value}"));
+            _url += $"?{Uri.EscapeDataString(queryString)}";
         }
         var request = new HttpRequestMessage(_method, _url)
         {

@@ -1,5 +1,4 @@
 ﻿
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 class ConfigData
@@ -27,6 +26,5 @@ class TestConfigData
     public Dictionary<string, string> Content { get; set; }
     public Dictionary<string, string> Query { get; set; }
     public string LogDirectory { get; set; }
-
     public JToken Expected { get; set; }
 }

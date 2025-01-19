@@ -4,7 +4,6 @@ using System.Text.Json;
 
 
 LogLevel level = LogLevel.Information;
-int success = 0, fail = 0;
 
 if (args.Length > 0)
 {
@@ -21,12 +20,14 @@ if (args.Length > 0)
     }
 }
 
+int success = 0, fail = 0;
 APITesterLogs logger = APITesterLogs.GetInstance(level);
 Dictionary<string, string> data = [];
 HttpResponseMessage? response = null;
 Validator validator = new();
+Tester tester = new();
 
-foreach (var item in Tester.GetTestData())
+foreach (var item in tester.GetTestData())
 {
     HttpRequestBuilder request = (HttpRequestBuilder)item[0];
     JToken expected = (JToken)item[1];
