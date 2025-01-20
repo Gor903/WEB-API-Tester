@@ -23,7 +23,7 @@ class TestConfigData
     public string Method { get; set; }
     public string Endpoint { get; set; }
     public Dictionary<string, string> Headers { get; set; }
-    public Dictionary<string, string> Content { get; set; }
+    public Dictionary<string, object> Content { get; set; }
     public Dictionary<string, string> Query { get; set; }
     public string LogDirectory { get; set; }
     public JToken Expected { get; set; }

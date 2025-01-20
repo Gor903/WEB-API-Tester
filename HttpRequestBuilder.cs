@@ -6,7 +6,7 @@ public class HttpRequestBuilder
 {
     public HttpMethod _method { get; private set; }
     public string _url { get; private set; }
-    public Dictionary<string, string> _content { get; private set; }
+    public Dictionary<string, object> _content { get; private set; }
     public Dictionary<string, string> _headers { get; private set; } 
     public Dictionary<string, string> _query { get; private set; }
 
@@ -14,7 +14,7 @@ public class HttpRequestBuilder
     {
         _headers = new Dictionary<string, string>();
         _query = new Dictionary<string, string>();
-        _content = new Dictionary<string, string>();
+        _content = new Dictionary<string, object>();
         _url = String.Empty;
         _method = HttpMethod.Get;
     }
@@ -54,7 +54,7 @@ public class HttpRequestBuilder
         return this;
     }
 
-    public HttpRequestBuilder SetContent(Dictionary<string, string> content)
+    public HttpRequestBuilder SetContent(Dictionary<string, object> content)
     {
         if (content == null) return this; 
         _content = _content.Concat(content)
